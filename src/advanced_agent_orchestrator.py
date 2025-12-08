@@ -97,30 +97,32 @@ class LinkedInAgentOrchestrator:
         
         return blog_post
     
-    def send_email(self, recipient_email: str, blog_post: Dict[str, Any]) -> bool:
+    def send_email(self, recipient_email: str, blog_post: Dict[str, Any]) -> tuple:
         """
         Send blog post via email
+        Returns: (success: bool, message: str)
         """
         try:
             self.logger.info(f"📧 Sending email to: {recipient_email}")
             
-            # Use email agent's send_blog_post method
-            success = self.email_agent.send_blog_post(
+            # Use email agent's send_blog_post method - now returns (bool, str)
+            success, message = self.email_agent.send_blog_post(
                 blog_post=blog_post,
                 recipient=recipient_email,
                 subject_prefix="LinkedIn Blog Post"
             )
             
             if success:
-                self.logger.info("✅ Email sent successfully")
+                self.logger.info(f"✅ Email sent successfully: {message}")
             else:
-                self.logger.error("❌ Email sending failed")
+                self.logger.error(f"❌ Email sending failed: {message}")
             
-            return success
+            return success, message
             
         except Exception as e:
-            self.logger.error(f"Email error: {e}")
-            return False
+            error_msg = f"Email error: {str(e)}"
+            self.logger.error(error_msg)
+            return False, error_msg
     
     def _execute_research_phase(self, topic: str, audience: str) -> Dict[str, Any]:
         """Execute research using multiple tools"""

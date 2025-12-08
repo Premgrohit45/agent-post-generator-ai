@@ -45,7 +45,7 @@ class EmailSender:
     def send_blog_post(self, 
                       blog_post: Dict[str, str], 
                       recipient: Optional[str] = None,
-                      subject_prefix: str = "Generated LinkedIn Blog Post") -> bool:
+                      subject_prefix: str = "Generated LinkedIn Blog Post") -> tuple:
         """
         Send a single blog post via email.
         
@@ -55,12 +55,12 @@ class EmailSender:
             subject_prefix (str): Prefix for email subject
             
         Returns:
-            bool: True if email sent successfully, False otherwise
+            tuple: (success: bool, message: str)
         """
         try:
             recipient = recipient or self.recipient_email
             if not recipient:
-                raise ValueError("No recipient email specified")
+                return False, "No recipient email specified"
             
             
             message = MIMEMultipart("alternative")
@@ -79,20 +79,24 @@ class EmailSender:
             message.attach(html_part)
             
             
-            self._send_email(message, recipient)
-            
-            self.logger.info(f"Blog post email sent successfully to {recipient}")
-            return True
+            success, msg = self._send_email(message, recipient)
+            if success:
+                self.logger.info(f"Blog post email sent successfully to {recipient}")
+                return True, f"Email sent successfully to {recipient}"
+            else:
+                self.logger.error(f"Email send failed: {msg}")
+                return False, msg
             
         except Exception as e:
-            self.logger.error(f"Error sending blog post email: {str(e)}")
-            return False
+            error_msg = f"Error sending blog post email: {str(e)}"
+            self.logger.error(error_msg)
+            return False, error_msg
     
     def send_to_multiple_recipients(self, 
                                    blog_post: Dict[str, str], 
                                    recipients: List[str],
                                    subject_prefix: str = "Generated LinkedIn Blog Post",
-                                   personalized_subjects: Optional[Dict[str, str]] = None) -> Dict[str, bool]:
+                                   personalized_subjects: Optional[Dict[str, str]] = None) -> Dict[str, tuple]:
         """
         Send a single blog post to multiple recipients.
         
@@ -103,7 +107,7 @@ class EmailSender:
             personalized_subjects (Optional[Dict[str, str]]): Custom subjects per recipient
             
         Returns:
-            Dict[str, bool]: Results for each recipient (email -> success/failure)
+            Dict[str, tuple]: Results for each recipient (email -> (success, message))
         """
         results = {}
         
@@ -132,14 +136,18 @@ class EmailSender:
                 message.attach(html_part)
                 
                 
-                self._send_email(message, recipient)
+                success, msg = self._send_email(message, recipient)
+                results[recipient] = (success, msg)
                 
-                results[recipient] = True
-                self.logger.info(f"Blog post email sent successfully to {recipient}")
+                if success:
+                    self.logger.info(f"Blog post email sent successfully to {recipient}")
+                else:
+                    self.logger.error(f"Failed to send email to {recipient}: {msg}")
                 
             except Exception as e:
-                results[recipient] = False
-                self.logger.error(f"Failed to send email to {recipient}: {str(e)}")
+                error_msg = f"Failed to send email to {recipient}: {str(e)}"
+                results[recipient] = (False, error_msg)
+                self.logger.error(error_msg)
         
         return results
     
@@ -350,22 +358,51 @@ LinkedIn Blog Agent
             self.logger.error(f"Error sending combined posts email: {str(e)}")
             return False
     
-    def _send_email(self, message, recipient: str) -> None:
+    def _send_email(self, message, recipient: str) -> tuple:
         """
-        Send the email using SMTP.
+        Send the email using SMTP with proper error handling.
+        Returns: (success: bool, message: str)
         """
+        server = None
         try:
+            self.logger.info(f"Connecting to SMTP server: {self.smtp_server}:{self.smtp_port}")
+            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=10)
             
-            server = smtplib.SMTP(self.smtp_server, self.smtp_port)
+            self.logger.info("SMTP connection established, starting TLS...")
             server.starttls()  # Enable security
+            
+            self.logger.info("Logging in with email credentials...")
             server.login(self.sender_email, self.sender_password)
             
+            self.logger.info(f"Sending email to {recipient}...")
             text = message.as_string()
             server.sendmail(self.sender_email, recipient, text)
-            server.quit()
             
+            self.logger.info("Email sent successfully, closing connection...")
+            return True, "Email sent successfully"
+            
+        except smtplib.SMTPAuthenticationError as e:
+            error_msg = "SMTP Authentication failed - Invalid EMAIL_PASSWORD or EMAIL_SENDER"
+            self.logger.error(f"{error_msg}: {e}")
+            return False, error_msg
+        except smtplib.SMTPException as e:
+            error_msg = f"SMTP error occurred: {str(e)}"
+            self.logger.error(error_msg)
+            return False, error_msg
+        except TimeoutError as e:
+            error_msg = "Connection timeout - SMTP server took too long to respond"
+            self.logger.error(error_msg)
+            return False, error_msg
         except Exception as e:
-            raise Exception(f"Failed to send email: {str(e)}")
+            error_msg = f"Failed to send email: {str(e)}"
+            self.logger.error(error_msg)
+            return False, error_msg
+        finally:
+            if server:
+                try:
+                    server.quit()
+                except Exception as e:
+                    self.logger.warning(f"Error closing SMTP connection: {e}")
     
     def validate_email(self, email: str) -> bool:
         """
