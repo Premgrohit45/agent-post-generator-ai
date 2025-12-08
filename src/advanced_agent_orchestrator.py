@@ -4,11 +4,11 @@ from typing import Dict, List, Optional, Any
 import logging
 from datetime import datetime
 try:
-    from src.langchain_blog_agent import LangChainBlogAgent
+    from src.langchain_post_agent import LangChainPostAgent
     from src.email_sender import EmailSender
     from src.agent_tools import AgentTools
 except ImportError:
-    from langchain_blog_agent import LangChainBlogAgent
+    from langchain_post_agent import LangChainPostAgent
     from email_sender import EmailSender
     from agent_tools import AgentTools
 
@@ -17,7 +17,7 @@ class LinkedInAgentOrchestrator:
     
     def __init__(self):
         # Initialize specialized agents - NOW USING LANGCHAIN!
-        self.blog_agent = LangChainBlogAgent()
+        self.post_agent = LangChainPostAgent()
         self.email_agent = EmailSender()
         self.tools = AgentTools()
         
@@ -36,7 +36,7 @@ class LinkedInAgentOrchestrator:
         self.logger.info("🚀 LinkedIn Agent Orchestrator initialized with LangChain")
         self.logger.info("✅ Multi-agent system ready with LangChain ReAct framework")
     
-    def orchestrate_blog_creation(self, 
+    def orchestrate_post_creation(self, 
                                   topic: str,
                                   tone: str = "professional",
                                   length: str = "medium",
@@ -58,7 +58,7 @@ class LinkedInAgentOrchestrator:
         # PHASE 3: Content Generation (LangChain ReAct Agent)
         orchestration_log.append("🤖 Phase 3: LangChain ReAct Agent generating content...")
         
-        blog_post = self.blog_agent.generate_blog_with_langchain(
+        post = self.post_agent.generate_post_with_langchain(
             topic=topic,
             tone=tone,
             length=length,
@@ -68,8 +68,8 @@ class LinkedInAgentOrchestrator:
         # PHASE 4: Quality Validation
         orchestration_log.append("✅ Phase 4: LangChain Agent completed workflow...")
         
-        # Get LangChain metadata from blog_post
-        agent_meta = blog_post.get('agent_metadata', {})
+        # Get LangChain metadata from post
+        agent_meta = post.get('agent_metadata', {})
         tools_available = agent_meta.get('tools_available', [])
         framework = agent_meta.get('framework', 'LangChain ReAct Agent')
         
@@ -79,7 +79,7 @@ class LinkedInAgentOrchestrator:
         orchestration_log.append(f"🎉 Workflow complete! Framework: {framework}")
         
         # Add orchestration metadata for UI display
-        blog_post['orchestration_metadata'] = {
+        post['orchestration_metadata'] = {
             'framework': framework,
             'tools_available': tools_available,
             'reasoning_steps': 4,
@@ -95,21 +95,21 @@ class LinkedInAgentOrchestrator:
             'framework': framework
         })
         
-        return blog_post
+        return post
     
-    def send_email(self, recipient_email: str, blog_post: Dict[str, Any]) -> tuple:
+    def send_email(self, recipient_email: str, post: Dict[str, Any]) -> tuple:
         """
-        Send blog post via email
+        Send post via email
         Returns: (success: bool, message: str)
         """
         try:
             self.logger.info(f"📧 Sending email to: {recipient_email}")
             
-            # Use email agent's send_blog_post method - now returns (bool, str)
-            success, message = self.email_agent.send_blog_post(
-                blog_post=blog_post,
+            # Use email agent's send_post method - now returns (bool, str)
+            success, message = self.email_agent.send_post(
+                post=post,
                 recipient=recipient_email,
-                subject_prefix="LinkedIn Blog Post"
+                subject_prefix="LinkedIn Post"
             )
             
             if success:
@@ -158,8 +158,8 @@ class LinkedInAgentOrchestrator:
         
         return research_results
     
-    def _validate_quality(self, blog_post: Dict, target_length: str) -> Dict[str, Any]:
-        """Validate blog post quality"""
+    def _validate_quality(self, post: Dict, target_length: str) -> Dict[str, Any]:
+        """Validate post quality"""
         
         quality_metrics = {
             'score': 0.0,
@@ -167,12 +167,12 @@ class LinkedInAgentOrchestrator:
         }
         
     
-        if blog_post.get('title'):
+        if post.get('title'):
             quality_metrics['checks']['has_title'] = True
             quality_metrics['score'] += 20
         
         
-        content = blog_post.get('content', '')
+        content = post.get('content', '')
         if len(content) > 100:
             quality_metrics['checks']['has_content'] = True
             quality_metrics['score'] += 30
@@ -187,12 +187,12 @@ class LinkedInAgentOrchestrator:
             quality_metrics['score'] += 20
         
         
-        if blog_post.get('hashtags') and len(blog_post['hashtags']) >= 3:
+        if post.get('hashtags') and len(post['hashtags']) >= 3:
             quality_metrics['checks']['has_hashtags'] = True
             quality_metrics['score'] += 15
         
         
-        if blog_post.get('call_to_action'):
+        if post.get('call_to_action'):
             quality_metrics['checks']['has_cta'] = True
             quality_metrics['score'] += 15
         
@@ -207,9 +207,9 @@ class LinkedInAgentOrchestrator:
         return {
             'orchestrator': 'active',
             'agents': {
-                'blog_agent': {
+                'post_agent': {
                     'status': 'ready',
-                    'capabilities': self.blog_agent.get_agent_capabilities()
+                    'capabilities': self.post_agent.get_agent_capabilities()
                 },
                 'email_agent': {
                     'status': 'ready',
@@ -249,7 +249,7 @@ class LinkedInAgentOrchestrator:
                 '1_function_calling': {
                     'description': 'Agent can call tools/functions automatically',
                     'implementation': 'Uses Google Gemini function calling API',
-                    'tools_available': [tool['name'] for tool in self.blog_agent.model.tools] if hasattr(self.blog_agent.model, 'tools') else ['search_web', 'analyze_sentiment', 'get_trending_topics', 'fetch_statistics', 'extract_key_insights'],
+                    'tools_available': [tool['name'] for tool in self.post_agent.model.tools] if hasattr(self.post_agent.model, 'tools') else ['search_web', 'analyze_sentiment', 'get_trending_topics', 'fetch_statistics', 'extract_key_insights'],
                     'demonstrated': True
                 },
                 '2_multi_step_reasoning': {
@@ -269,7 +269,7 @@ class LinkedInAgentOrchestrator:
                 },
                 '5_agent_architecture': {
                     'description': 'Multi-agent system with orchestration',
-                    'agents': ['Blog Generation Agent', 'Email Agent', 'Research Agent', 'Quality Agent'],
+                    'agents': ['Post Generation Agent', 'Email Agent', 'Research Agent', 'Quality Agent'],
                     'demonstrated': True
                 }
             },
@@ -281,7 +281,7 @@ class LinkedInAgentOrchestrator:
             },
             'proof_of_implementation': {
                 'files': [
-                    'src/langchain_blog_agent.py - LangGraph ReAct agent implementation',
+                    'src/langchain_post_agent.py - LangGraph ReAct agent implementation',
                     'src/agent_tools.py - LangChain tool definitions and implementations',
                     'src/advanced_agent_orchestrator.py - Multi-agent orchestration',
                     'streamlit_app_modern.py - UI showing agent in action'
@@ -289,7 +289,7 @@ class LinkedInAgentOrchestrator:
                 'key_code_sections': {
                     'tool_definitions': 'TOOL_DEFINITIONS in agent_tools.py',
                     'function_calling': 'model = genai.GenerativeModel(tools=TOOL_DEFINITIONS)',
-                    'agent_orchestration': 'orchestrate_blog_creation() method',
+                    'agent_orchestration': 'orchestrate_post_creation() method',
                     'memory_management': 'self.memory dictionary'
                 }
             }

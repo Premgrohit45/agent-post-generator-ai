@@ -26,8 +26,8 @@ def test_email_configuration():
         print(f"  - SMTP Server: {sender.smtp_server}:{sender.smtp_port}")
         
         # Test email content
-        test_blog_post = {
-            "blog_post_content": "This is a test email from the LinkedIn Post Agent!",
+        test_post = {
+            "post_content": "This is a test email from the LinkedIn Post Agent!",
             "hashtags": "#LinkedInAI #Test",
             "topic": "Testing",
             "tone": "professional",
@@ -36,10 +36,10 @@ def test_email_configuration():
         
         print("\n[2/3] Creating test email message...")
         print(f"  - Recipient: {sender.sender_email} (sending to self)")
-        print(f"  - Topic: {test_blog_post['topic']}")
+        print(f"  - Topic: {test_post['topic']}")
         
         print("\n[3/3] Attempting to send test email...")
-        success, message = sender.send_blog_post(test_blog_post, sender.sender_email)
+        success, message = sender.send_post(test_post, sender.sender_email)
         
         if success:
             print("\n" + "="*60)

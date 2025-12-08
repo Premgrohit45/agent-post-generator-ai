@@ -14,7 +14,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 try:
     from src.advanced_agent_orchestrator import LinkedInAgentOrchestrator
-    from src.langchain_blog_agent import LangChainBlogAgent
+    from src.langchain_post_agent import LangChainPostAgent
     from src.email_sender import EmailSender
     from src.agent_tools import AgentTools
 except ImportError as e:
@@ -752,7 +752,7 @@ def load_agent_css():
     }
     
     /* Enhanced Blog Content Text */
-    .blog-content-text {
+    .post-content-text {
         color: #ffffff !important;
         font-family: 'Space Grotesk', sans-serif !important;
         font-weight: 400 !important;
@@ -773,7 +773,7 @@ def load_agent_css():
     }
     
     /* Enhanced Blog Title Styling */
-    .blog-title {
+    .post-title {
         background: linear-gradient(135deg, #00ffff, #0096ff) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
@@ -993,16 +993,16 @@ def load_agent_css():
 def initialize_session_state():
     if 'agent_initialized' not in st.session_state:
         st.session_state.agent_initialized = False
-    if 'blog_history' not in st.session_state:
-        st.session_state.blog_history = []
+    if 'post_history' not in st.session_state:
+        st.session_state.post_history = []
     if 'total_generated' not in st.session_state:
         st.session_state.total_generated = 0
     if 'total_emails_sent' not in st.session_state:
         st.session_state.total_emails_sent = 0
     if 'current_page' not in st.session_state:
         st.session_state.current_page = 'home'
-    if 'generated_blog' not in st.session_state:
-        st.session_state.generated_blog = None
+    if 'generated_post' not in st.session_state:
+        st.session_state.generated_post = None
     if 'generation_topic' not in st.session_state:
         st.session_state.generation_topic = ''
 
@@ -1061,8 +1061,8 @@ def validate_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
 
-# Blog Generation Interface
-def render_blog_generator():
+# Post Generation Interface
+def render_post_generator():
     st.markdown("""
     <div class="control-panel">
         <div class="panel-title">🚀 BLOG GENERATION SYSTEM</div>
@@ -1072,7 +1072,7 @@ def render_blog_generator():
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        topic = st.text_input("🎯 BLOG TOPIC", placeholder="Enter your blog topic here...")
+        topic = st.text_input("🎯 BLOG TOPIC", placeholder="Enter your post topic here...")
         
         col_a, col_b = st.columns(2)
         with col_a:
@@ -1095,10 +1095,10 @@ def render_blog_generator():
                 st.session_state.current_page = 'generating'
                 st.rerun()
             else:
-                st.error("⚠️ Please enter a blog topic")
+                st.error("⚠️ Please enter a post topic")
 
-def generate_single_blog():
-    """Generate blog with stored parameters using advanced agentic orchestrator"""
+def generate_single_post():
+    """Generate post with stored parameters using advanced agentic orchestrator"""
     try:
         # Get parameters from session state
         topic = st.session_state.generation_topic
@@ -1135,7 +1135,7 @@ def generate_single_blog():
         status_text.text("🤖 Agent generating content with multi-step reasoning...")
         
         # Use advanced agentic orchestration
-        blog_post = orchestrator.orchestrate_blog_creation(
+        post = orchestrator.orchestrate_post_creation(
             topic=topic,
             tone=tone,
             length=length,
@@ -1156,15 +1156,15 @@ def generate_single_blog():
         
         # Update session state
         st.session_state.total_generated += 1
-        st.session_state.blog_history.append({
-            'title': blog_post.get('title'),
+        st.session_state.post_history.append({
+            'title': post.get('title'),
             'topic': topic,
             'generated_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'agentic': True  # Mark as generated with agent
         })
         
-        # Store the generated blog and navigate to results
-        st.session_state.generated_blog = blog_post
+        # Store the generated post and navigate to results
+        st.session_state.generated_post = post
         st.session_state.current_page = 'results'
         st.rerun()
         
@@ -1176,16 +1176,16 @@ def generate_single_blog():
         st.session_state.current_page = 'home'
         st.rerun()
 
-def render_blog_display(blog_post):
+def render_post_display(post):
     # First, show the LangChain framework proof (REAL ADK FRAMEWORK!)
-    if 'orchestration_metadata' in blog_post:
+    if 'orchestration_metadata' in post:
         st.markdown("""
         <div class="control-panel">
             <div class="panel-title">🤖 LANGCHAIN FRAMEWORK - REAL AGENT SDK IMPLEMENTATION</div>
         </div>
         """, unsafe_allow_html=True)
         
-        metadata = blog_post['orchestration_metadata']
+        metadata = post['orchestration_metadata']
         
         # Show framework information prominently
         framework = metadata.get('framework', 'LangChain ReAct Agent')
@@ -1307,7 +1307,7 @@ def render_blog_display(blog_post):
     """, unsafe_allow_html=True)
     
     # Compact title styling
-    title = blog_post.get('title', 'Untitled')
+    title = post.get('title', 'Untitled')
     st.markdown(f"""
     <div style="
         background: rgba(0, 255, 255, 0.1);
@@ -1339,7 +1339,7 @@ def render_blog_display(blog_post):
     """, unsafe_allow_html=True)
     
     # Use compact content display
-    content = blog_post.get('content', 'No content')
+    content = post.get('content', 'No content')
     # Handle if content is a list
     if isinstance(content, list):
         content = '\n\n'.join(content)
@@ -1374,7 +1374,7 @@ def render_blog_display(blog_post):
     col1, col2 = st.columns(2)
     
     with col1:
-        hashtags = blog_post.get('hashtags', 'No hashtags')
+        hashtags = post.get('hashtags', 'No hashtags')
         # Handle if hashtags is a list
         if isinstance(hashtags, list):
             hashtags = ' '.join(hashtags)
@@ -1412,7 +1412,7 @@ def render_blog_display(blog_post):
         """, unsafe_allow_html=True)
     
     with col2:
-        cta = blog_post.get('call_to_action', 'No CTA')
+        cta = post.get('call_to_action', 'No CTA')
         # Handle if CTA is a list
         if isinstance(cta, list):
             cta = ' '.join(cta)
@@ -1467,36 +1467,36 @@ def render_blog_display(blog_post):
     with col1:
         st.download_button(
             label="📥 DOWNLOAD JSON",
-            data=json.dumps(blog_post, indent=2),
-            file_name=f"blog_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            data=json.dumps(post, indent=2),
+            file_name=f"post_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             mime="application/json",
             key="download_json"
         )
     
     with col2:
-        text_content = f"""TITLE: {blog_post.get('title', 'Untitled')}
+        text_content = f"""TITLE: {post.get('title', 'Untitled')}
 
 CONTENT:
-{blog_post.get('content', 'No content')}
+{post.get('content', 'No content')}
 
-HASHTAGS: {blog_post.get('hashtags', 'No hashtags')}
+HASHTAGS: {post.get('hashtags', 'No hashtags')}
 
-CALL TO ACTION: {blog_post.get('call_to_action', 'No CTA')}
+CALL TO ACTION: {post.get('call_to_action', 'No CTA')}
 
 ---
-Generated: {blog_post.get('generated_at', datetime.now().isoformat())}"""
+Generated: {post.get('generated_at', datetime.now().isoformat())}"""
         
         st.download_button(
             label="� DOWNLOAD TXT",
             data=text_content,
-            file_name=f"blog_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            file_name=f"post_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
             mime="text/plain",
             key="download_txt"
         )
     
     st.markdown("</div>", unsafe_allow_html=True)
 
-def render_email_section(blog_post):
+def render_email_section(post):
     st.markdown("""
     <div class="control-panel">
         <div class="panel-title">📧 EMAIL DISTRIBUTION SYSTEM</div>
@@ -1510,20 +1510,20 @@ def render_email_section(blog_post):
         
         with col1:
             single_email = st.text_input("📧 RECIPIENT EMAIL", placeholder="recipient@example.com")
-            subject_prefix = st.text_input("📝 SUBJECT PREFIX", value="Generated LinkedIn Blog Post")
+            subject_prefix = st.text_input("📝 SUBJECT PREFIX", value="Generated LinkedIn Post")
         
         with col2:
             st.markdown("### 🎛️ SEND CONTROLS")
             if st.button("📤 SEND EMAIL"):
                 if single_email and validate_email(single_email):
-                    send_single_email(blog_post, single_email, subject_prefix)
+                    send_single_email(post, single_email, subject_prefix)
                 else:
                     st.error("⚠️ Please enter a valid email address")
     
     with tab2:
-        render_multiple_recipients_section(blog_post)
+        render_multiple_recipients_section(post)
 
-def render_multiple_recipients_section(blog_post):
+def render_multiple_recipients_section(post):
     st.markdown("### 📮 MULTIPLE RECIPIENTS SYSTEM")
     
     # Recipients input area
@@ -1536,7 +1536,7 @@ def render_multiple_recipients_section(blog_post):
     col1, col2 = st.columns(2)
     
     with col1:
-        subject_prefix_multi = st.text_input("📝 SUBJECT PREFIX (MULTI)", value="Generated LinkedIn Blog Post")
+        subject_prefix_multi = st.text_input("📝 SUBJECT PREFIX (MULTI)", value="Generated LinkedIn Post")
         validate_emails_check = st.checkbox("✅ VALIDATE EMAILS", value=True)
     
     with col2:
@@ -1544,11 +1544,11 @@ def render_multiple_recipients_section(blog_post):
         if st.button("📮 SEND TO ALL"):
             if recipients_text.strip():
                 recipients = [email.strip() for email in recipients_text.split('\n') if email.strip()]
-                send_multiple_emails(blog_post, recipients, subject_prefix_multi, validate_emails_check)
+                send_multiple_emails(post, recipients, subject_prefix_multi, validate_emails_check)
             else:
                 st.error("⚠️ Please enter at least one email address")
 
-def send_single_email(blog_post, email, subject_prefix):
+def send_single_email(post, email, subject_prefix):
     try:
         agent, success, message = initialize_agent()
         if not success:
@@ -1559,7 +1559,7 @@ def send_single_email(blog_post, email, subject_prefix):
             # Use orchestrator's send_email method - now returns (bool, str)
             success, email_message = agent.send_email(
                 recipient_email=email,
-                blog_post=blog_post
+                post=post
             )
         
         if success:
@@ -1571,7 +1571,7 @@ def send_single_email(blog_post, email, subject_prefix):
     except Exception as e:
         st.error(f"🚨 Email sending failed: {str(e)}")
 
-def send_multiple_emails(blog_post, recipients, subject_prefix, validate_emails):
+def send_multiple_emails(post, recipients, subject_prefix, validate_emails):
     try:
         agent, success, message = initialize_agent()
         if not success:
@@ -1580,7 +1580,7 @@ def send_multiple_emails(blog_post, recipients, subject_prefix, validate_emails)
         
         with st.spinner("📮 Processing multiple recipients..."):
             results = agent.generate_and_send_to_multiple_recipients(
-                topic=blog_post.get('topic', 'Generated Blog'),
+                topic=post.get('topic', 'Generated Blog'),
                 recipients=recipients,
                 validate_emails=validate_emails,
                 save_to_file=False
@@ -1715,8 +1715,8 @@ def render_generation_page():
             st.session_state.current_page = 'home'
             st.rerun()
     
-    # Generate the blog
-    generate_single_blog()
+    # Generate the post
+    generate_single_post()
 
 # Results Page
 def render_results_page():
@@ -1725,22 +1725,22 @@ def render_results_page():
     with col1:
         if st.button("🔙 BACK TO HOME"):
             st.session_state.current_page = 'home'
-            st.session_state.generated_blog = None
+            st.session_state.generated_post = None
             st.rerun()
     
     with col3:
         if st.button("🚀 GENERATE NEW"):
             st.session_state.current_page = 'home'
-            st.session_state.generated_blog = None
+            st.session_state.generated_post = None
             st.rerun()
     
-    # Display the generated blog
-    if st.session_state.generated_blog:
+    # Display the generated post
+    if st.session_state.generated_post:
         st.success("🎉 Blog generated successfully!")
-        render_blog_display(st.session_state.generated_blog)
-        render_email_section(st.session_state.generated_blog)
+        render_post_display(st.session_state.generated_post)
+        render_email_section(st.session_state.generated_post)
     else:
-        st.error("No blog data found. Please generate a new blog.")
+        st.error("No post data found. Please generate a new post.")
 
 # Sidebar Navigation
 def render_neon_sidebar():
@@ -1856,7 +1856,7 @@ def main():
     if st.session_state.current_page == 'home':
         # Render home page
         render_status_dashboard()
-        render_blog_generator()
+        render_post_generator()
         
         # Footer - wrapped in container to stay at bottom
         st.markdown('<div class="footer-container">', unsafe_allow_html=True)

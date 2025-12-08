@@ -1,10 +1,10 @@
-# LinkedIn Blog Agent - Architecture and Design
+# LinkedIn Post Agent - Architecture and Design
 
 ## 🏗️ System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    LinkedIn Blog Agent                          │
+│                    LinkedIn Post Agent                          │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌───────────────┐  ┌──────────────┐  ┌─────────────────────┐   │
 │  │     User      │  │  Interactive │  │   Command Line      │   │
@@ -16,13 +16,13 @@
 ├────────────────────────────┼────────────────────────────────────┤
 │                            ▼                                    │
 │           ┌─────────────────────────────────────┐               │
-│           │      LinkedIn Blog Agent            │               │
+│           │      LinkedIn Post Agent            │               │
 │           │         (Orchestrator)              │               │
 │           └─────────┬───────────────┬───────────┘               │
 ├─────────────────────┼───────────────┼───────────────────────────┤
 │                     ▼               ▼                           │
 │  ┌──────────────────────────┐  ┌──────────────────────────┐    │
-│  │   Blog Generator         │  │     Email Sender         │    │
+│  │   Post Generator         │  │     Email Sender         │    │
 │  │  (Google AI SDK)         │  │    (SMTP Gmail)          │    │
 │  └─────────┬────────────────┘  └──────────────┬───────────┘    │
 ├────────────┼─────────────────────────────────────┼──────────────┤
@@ -43,17 +43,17 @@
 
 ## 🔧 Component Architecture
 
-### 1. **LinkedIn Blog Agent (Main Orchestrator)**
-- **Purpose**: Coordinates all operations between blog generation and email sending
+### 1. **LinkedIn Post Agent (Main Orchestrator)**
+- **Purpose**: Coordinates all operations between post generation and email sending
 - **Key Features**:
   - Interactive command-line interface
   - Batch processing of multiple topics
   - Error handling and logging
-  - File management (save/load blog posts)
+  - File management (save/load posts)
   - Configuration management
 
-### 2. **Blog Generator (Google AI SDK Integration)**
-- **Purpose**: Generates LinkedIn blog posts using Google's Generative AI
+### 2. **Post Generator (Google AI SDK Integration)**
+- **Purpose**: Generates LinkedIn posts using Google's Generative AI
 - **Technology**: `google-generativeai` package with Gemini Pro model
 - **Key Features**:
   - Customizable prompts for different tones and audiences
@@ -63,7 +63,7 @@
   - Response validation and error handling
 
 ### 3. **Email Sender (SMTP Integration)**
-- **Purpose**: Sends generated blog posts via email
+- **Purpose**: Sends generated posts via email
 - **Technology**: Python `smtplib` with Gmail SMTP
 - **Key Features**:
   - HTML and plain text email formatting
@@ -82,7 +82,7 @@
    └── Email Preferences
           │
           ▼
-2. Blog Generation
+2. Post Generation
    ├── Create Prompt → Google AI API
    ├── Generate Content ← AI Response
    ├── Parse Response → Structure Data
@@ -141,7 +141,7 @@ Start → Show Menu → User Selection:
 ```python
 class LinkedInBlogGenerator:
     - __init__(): Initialize Google AI SDK
-    - generate_blog_post(): Main generation method
+    - generate_post(): Main generation method
     - generate_multiple_posts(): Batch generation
     - get_topic_suggestions(): AI-powered suggestions
     - _create_blog_prompt(): Prompt engineering
@@ -152,7 +152,7 @@ class LinkedInBlogGenerator:
 ```python
 class EmailSender:
     - __init__(): Initialize SMTP configuration
-    - send_blog_post(): Send single post
+    - send_post(): Send single post
     - send_multiple_posts(): Send batch posts
     - send_with_attachment(): Send with files
     - test_connection(): Validate SMTP
@@ -186,7 +186,7 @@ BLOG_LENGTH=xxx            # Default blog length
 ```
 
 ### Runtime Configuration
-- **Blog Generation**: Topic, tone, length, audience, hashtags, CTA
+- **Post Generation**: Topic, tone, length, audience, hashtags, CTA
 - **Email Sending**: Recipients, format, attachments, batch settings
 - **File Management**: Output directory, naming conventions, formats
 
@@ -233,7 +233,7 @@ BLOG_LENGTH=xxx            # Default blog length
 - DEBUG: Detailed troubleshooting
 
 ### Performance Metrics
-- Generation time per blog post
+- Generation time per post
 - Email delivery success rates
 - API quota usage
 - File save operations

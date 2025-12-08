@@ -1,5 +1,5 @@
 """
-LangChain Blog Agent - REAL ADK Framework Implementation
+LangChain Post Agent - REAL ADK Framework Implementation
 Uses LangGraph (LangChain's agent framework) with Google Gemini
 """
 
@@ -18,7 +18,7 @@ except ImportError:
     from agent_tools import create_langchain_tools
 
 
-class LangChainBlogAgent:
+class LangChainPostAgent:
     """
     Real LangGraph Agent Implementation (LangChain's Official Agent Framework)
     Uses LangGraph ReAct agent - NOT custom code!
@@ -49,7 +49,7 @@ class LangChainBlogAgent:
         self.logger = logging.getLogger(__name__)
         self.logger.info("LangGraph ReAct Agent initialized with Google Gemini")
     
-    def generate_blog_with_langchain(self,
+    def generate_post_with_langchain(self,
                                      topic: str,
                                      tone: str = "professional",
                                      length: str = "medium",
@@ -64,7 +64,7 @@ class LangChainBlogAgent:
         length_map = {"short": "150 words", "medium": "300 words", "long": "500 words"}
         
     
-        task = f"""Create a professional LinkedIn blog post about "{topic}".
+        task = f"""Create a professional LinkedIn post about "{topic}".
 
 Requirements:
 - Tone: {tone}
@@ -75,7 +75,7 @@ Steps to follow:
 1. Use search_web tool to research "{topic}"
 2. Use fetch_statistics tool to get data about "{topic}"  
 3. Use get_trending_topics tool for "{topic}" industry
-4. Create an engaging blog post incorporating the research
+4. Create an engaging post incorporating the research
 
 Format your final answer EXACTLY as:
 TITLE: [Your title here]
@@ -150,7 +150,7 @@ CALL_TO_ACTION:
         try:
             length_map = {"short": "150 words", "medium": "300 words", "long": "500 words"}
             
-            prompt = f"""Create a professional LinkedIn blog post about "{topic}".
+            prompt = f"""Create a professional LinkedIn post about "{topic}".
 
 Requirements:
 - Tone: {tone}
@@ -227,7 +227,7 @@ What are your thoughts on {topic}? Share your perspective in the comments!"""
         
         
         if not result['title']:
-            result['title'] = 'LinkedIn Blog Post'
+            result['title'] = 'LinkedIn Post'
         if not result['content']:
             result['content'] = text
         if not result['hashtags']:

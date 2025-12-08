@@ -1,6 +1,6 @@
 """
 Email Sender Module
-This module handles sending generated LinkedIn blog posts via email.
+This module handles sending generated LinkedIn posts via email.
 """
 
 import smtplib
@@ -20,7 +20,7 @@ except ImportError:
 
 class EmailSender:
     """
-    A class to send emails with LinkedIn blog posts.
+    A class to send emails with LinkedIn posts.
     """
     
     def __init__(self):
@@ -42,15 +42,15 @@ class EmailSender:
         
         self.logger.info("Email Sender initialized successfully")
     
-    def send_blog_post(self, 
-                      blog_post: Dict[str, str], 
+    def send_post(self, 
+                      post: Dict[str, str], 
                       recipient: Optional[str] = None,
-                      subject_prefix: str = "Generated LinkedIn Blog Post") -> tuple:
+                      subject_prefix: str = "Generated LinkedIn Post") -> tuple:
         """
-        Send a single blog post via email.
+        Send a single post via email.
         
         Args:
-            blog_post (Dict[str, str]): The blog post data
+            post (Dict[str, str]): The post data
             recipient (Optional[str]): Recipient email (uses default if not provided)
             subject_prefix (str): Prefix for email subject
             
@@ -64,16 +64,16 @@ class EmailSender:
             
             
             message = MIMEMultipart("alternative")
-            message["Subject"] = f"{subject_prefix}: {blog_post.get('title', 'Untitled')}"
+            message["Subject"] = f"{subject_prefix}: {post.get('title', 'Untitled')}"
             message["From"] = self.sender_email
             message["To"] = recipient
             
             
-            email_body = self._create_email_body(blog_post)
+            email_body = self._create_email_body(post)
             
         
             text_part = MIMEText(email_body, "plain")
-            html_part = MIMEText(self._create_html_body(blog_post), "html")
+            html_part = MIMEText(self._create_html_body(post), "html")
             
             message.attach(text_part)
             message.attach(html_part)
@@ -81,27 +81,27 @@ class EmailSender:
             
             success, msg = self._send_email(message, recipient)
             if success:
-                self.logger.info(f"Blog post email sent successfully to {recipient}")
+                self.logger.info(f"Post email sent successfully to {recipient}")
                 return True, f"Email sent successfully to {recipient}"
             else:
                 self.logger.error(f"Email send failed: {msg}")
                 return False, msg
             
         except Exception as e:
-            error_msg = f"Error sending blog post email: {str(e)}"
+            error_msg = f"Error sending post email: {str(e)}"
             self.logger.error(error_msg)
             return False, error_msg
     
     def send_to_multiple_recipients(self, 
-                                   blog_post: Dict[str, str], 
+                                   post: Dict[str, str], 
                                    recipients: List[str],
-                                   subject_prefix: str = "Generated LinkedIn Blog Post",
+                                   subject_prefix: str = "Generated LinkedIn Post",
                                    personalized_subjects: Optional[Dict[str, str]] = None) -> Dict[str, tuple]:
         """
-        Send a single blog post to multiple recipients.
+        Send a single post to multiple recipients.
         
         Args:
-            blog_post (Dict[str, str]): The blog post data
+            post (Dict[str, str]): The post data
             recipients (List[str]): List of recipient email addresses
             subject_prefix (str): Default subject prefix
             personalized_subjects (Optional[Dict[str, str]]): Custom subjects per recipient
@@ -117,7 +117,7 @@ class EmailSender:
                 if personalized_subjects and recipient in personalized_subjects:
                     custom_subject = personalized_subjects[recipient]
                 else:
-                    custom_subject = f"{subject_prefix}: {blog_post.get('title', 'Untitled')}"
+                    custom_subject = f"{subject_prefix}: {post.get('title', 'Untitled')}"
                 
                 
                 message = MIMEMultipart("alternative")
@@ -126,11 +126,11 @@ class EmailSender:
                 message["To"] = recipient
                 
             
-                email_body = self._create_email_body(blog_post)
+                email_body = self._create_email_body(post)
                 
             
                 text_part = MIMEText(email_body, "plain")
-                html_part = MIMEText(self._create_html_body(blog_post), "html")
+                html_part = MIMEText(self._create_html_body(post), "html")
                 
                 message.attach(text_part)
                 message.attach(html_part)
@@ -140,7 +140,7 @@ class EmailSender:
                 results[recipient] = (success, msg)
                 
                 if success:
-                    self.logger.info(f"Blog post email sent successfully to {recipient}")
+                    self.logger.info(f"Post email sent successfully to {recipient}")
                 else:
                     self.logger.error(f"Failed to send email to {recipient}: {msg}")
                 
@@ -152,14 +152,14 @@ class EmailSender:
         return results
     
     def send_multiple_posts(self, 
-                           blog_posts: List[Dict[str, str]], 
+                           posts: List[Dict[str, str]], 
                            recipient: Optional[str] = None,
                            send_separately: bool = True) -> Dict[str, bool]:
         """
-        Send multiple blog posts via email.
+        Send multiple posts via email.
         
         Args:
-            blog_posts (List[Dict[str, str]]): List of blog posts
+            posts (List[Dict[str, str]]): List of posts
             recipient (Optional[str]): Recipient email
             send_separately (bool): Whether to send each post as separate email
             
@@ -170,30 +170,30 @@ class EmailSender:
         
         if send_separately:
             
-            for i, post in enumerate(blog_posts):
+            for i, post in enumerate(posts):
                 post_title = post.get('title', f'Post {i+1}')
-                success = self.send_blog_post(
-                    blog_post=post,
+                success = self.send_post(
+                    post=post,
                     recipient=recipient,
                     subject_prefix=f"Blog Post {i+1}"
                 )
                 results[post_title] = success
         else:
             
-            success = self._send_combined_posts(blog_posts, recipient)
+            success = self._send_combined_posts(posts, recipient)
             results['Combined Posts'] = success
         
         return results
     
     def send_with_attachment(self, 
-                           blog_post: Dict[str, str], 
+                           post: Dict[str, str], 
                            attachment_path: str,
                            recipient: Optional[str] = None) -> bool:
         """
-        Send blog post email with file attachment.
+        Send post email with file attachment.
         
         Args:
-            blog_post (Dict[str, str]): The blog post data
+            post (Dict[str, str]): The post data
             attachment_path (str): Path to the attachment file
             recipient (Optional[str]): Recipient email
             
@@ -207,12 +207,12 @@ class EmailSender:
             
     
             message = MIMEMultipart()
-            message["Subject"] = f"LinkedIn Blog Post (with attachment): {blog_post.get('title', 'Untitled')}"
+            message["Subject"] = f"LinkedIn Post (with attachment): {post.get('title', 'Untitled')}"
             message["From"] = self.sender_email
             message["To"] = recipient
             
     
-            email_body = self._create_email_body(blog_post)
+            email_body = self._create_email_body(post)
             message.attach(MIMEText(email_body, "plain"))
             
             
@@ -232,48 +232,48 @@ class EmailSender:
         
             self._send_email(message, recipient)
             
-            self.logger.info(f"Blog post email with attachment sent successfully to {recipient}")
+            self.logger.info(f"Post email with attachment sent successfully to {recipient}")
             return True
             
         except Exception as e:
             self.logger.error(f"Error sending email with attachment: {str(e)}")
             return False
     
-    def _create_email_body(self, blog_post: Dict[str, str]) -> str:
+    def _create_email_body(self, post: Dict[str, str]) -> str:
         """
         Create the plain text email body.
         """
         body = f"""
 Hello!
 
-I've generated a new LinkedIn blog post for you:
+I've generated a new LinkedIn post for you:
 
-TITLE: {blog_post.get('title', 'Untitled')}
+TITLE: {post.get('title', 'Untitled')}
 
 CONTENT:
-{blog_post.get('content', 'No content available')}
+{post.get('content', 'No content available')}
 
 """
         
-        if blog_post.get('hashtags'):
-            body += f"\nHASHTAGS: {blog_post['hashtags']}\n"
+        if post.get('hashtags'):
+            body += f"\nHASHTAGS: {post['hashtags']}\n"
         
-        if blog_post.get('call_to_action'):
-            body += f"\nCALL TO ACTION: {blog_post['call_to_action']}\n"
+        if post.get('call_to_action'):
+            body += f"\nCALL TO ACTION: {post['call_to_action']}\n"
         
         body += f"""
 ---
-Generated on: {blog_post.get('generated_at', datetime.now().isoformat())}
-Topic: {blog_post.get('topic', 'Unknown')}
-Tone: {blog_post.get('tone', 'Unknown')}
+Generated on: {post.get('generated_at', datetime.now().isoformat())}
+Topic: {post.get('topic', 'Unknown')}
+Tone: {post.get('tone', 'Unknown')}
 
 Best regards,
-LinkedIn Blog Agent
+LinkedIn Agent
 """
         
         return body
     
-    def _create_html_body(self, blog_post: Dict[str, str]) -> str:
+    def _create_html_body(self, post: Dict[str, str]) -> str:
         """
         Create the HTML email body for better formatting.
         """
@@ -281,40 +281,40 @@ LinkedIn Blog Agent
         <html>
         <head></head>
         <body>
-            <h2>New LinkedIn Blog Post Generated</h2>
+            <h2>New LinkedIn Post Generated</h2>
             
-            <h3 style="color: #0073b1;">{blog_post.get('title', 'Untitled')}</h3>
+            <h3 style="color: #0073b1;">{post.get('title', 'Untitled')}</h3>
             
             <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #0073b1;">
-                <p style="white-space: pre-line; line-height: 1.6;">{blog_post.get('content', 'No content available')}</p>
+                <p style="white-space: pre-line; line-height: 1.6;">{post.get('content', 'No content available')}</p>
             </div>
         """
         
-        if blog_post.get('hashtags'):
+        if post.get('hashtags'):
             html += f"""
             <div style="margin: 15px 0;">
-                <strong>Hashtags:</strong> <span style="color: #0073b1;">{blog_post['hashtags']}</span>
+                <strong>Hashtags:</strong> <span style="color: #0073b1;">{post['hashtags']}</span>
             </div>
             """
         
-        if blog_post.get('call_to_action'):
+        if post.get('call_to_action'):
             html += f"""
             <div style="margin: 15px 0; padding: 10px; background-color: #e7f3ff; border-radius: 5px;">
-                <strong>Call to Action:</strong> {blog_post['call_to_action']}
+                <strong>Call to Action:</strong> {post['call_to_action']}
             </div>
             """
         
         html += f"""
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
             <small style="color: #666;">
-                Generated on: {blog_post.get('generated_at', datetime.now().isoformat())}<br>
-                Topic: {blog_post.get('topic', 'Unknown')}<br>
-                Tone: {blog_post.get('tone', 'Unknown')}
+                Generated on: {post.get('generated_at', datetime.now().isoformat())}<br>
+                Topic: {post.get('topic', 'Unknown')}<br>
+                Tone: {post.get('tone', 'Unknown')}
             </small>
             
             <p style="margin-top: 20px; color: #666;">
                 Best regards,<br>
-                <strong>LinkedIn Blog Agent</strong>
+                <strong>LinkedIn Agent</strong>
             </p>
         </body>
         </html>
@@ -322,9 +322,9 @@ LinkedIn Blog Agent
         
         return html
     
-    def _send_combined_posts(self, blog_posts: List[Dict[str, str]], recipient: Optional[str] = None) -> bool:
+    def _send_combined_posts(self, posts: List[Dict[str, str]], recipient: Optional[str] = None) -> bool:
         """
-        Send multiple blog posts in a single email.
+        Send multiple posts in a single email.
         """
         try:
             recipient = recipient or self.recipient_email
@@ -332,14 +332,14 @@ LinkedIn Blog Agent
                 raise ValueError("No recipient email specified")
 
             message = MIMEMultipart("alternative")
-            message["Subject"] = f"Multiple LinkedIn Blog Posts - {len(blog_posts)} Posts Generated"
+            message["Subject"] = f"Multiple LinkedIn Posts - {len(posts)} Posts Generated"
             message["From"] = self.sender_email
             message["To"] = recipient
             
             
-            combined_body = f"Hello!\n\nI've generated {len(blog_posts)} LinkedIn blog posts for you:\n\n"
+            combined_body = f"Hello!\n\nI've generated {len(posts)} LinkedIn posts for you:\n\n"
             
-            for i, post in enumerate(blog_posts, 1):
+            for i, post in enumerate(posts, 1):
                 combined_body += f"=== BLOG POST {i} ===\n"
                 combined_body += self._create_email_body(post)
                 combined_body += "\n" + "="*50 + "\n\n"
@@ -351,7 +351,7 @@ LinkedIn Blog Agent
             
             self._send_email(message, recipient)
             
-            self.logger.info(f"Combined blog posts email sent successfully to {recipient}")
+            self.logger.info(f"Combined posts email sent successfully to {recipient}")
             return True
             
         except Exception as e:
@@ -447,15 +447,15 @@ LinkedIn Blog Agent
         return [email for email in recipients if not self.validate_email(email)]
     
     def send_batch_with_validation(self, 
-                                  blog_post: Dict[str, str], 
+                                  post: Dict[str, str], 
                                   recipients: List[str],
-                                  subject_prefix: str = "Generated LinkedIn Blog Post",
+                                  subject_prefix: str = "Generated LinkedIn Post",
                                   skip_invalid: bool = True) -> Dict[str, Any]:
         """
-        Send blog post to multiple recipients with email validation.
+        Send post to multiple recipients with email validation.
         
         Args:
-            blog_post (Dict[str, str]): The blog post data
+            post (Dict[str, str]): The post data
             recipients (List[str]): List of recipient email addresses
             subject_prefix (str): Subject prefix for emails
             skip_invalid (bool): Whether to skip invalid emails or fail entirely
@@ -495,7 +495,7 @@ LinkedIn Blog Agent
         
         if valid_emails:
             sending_results = self.send_to_multiple_recipients(
-                blog_post=blog_post,
+                post=post,
                 recipients=valid_emails,
                 subject_prefix=subject_prefix
             )
@@ -540,7 +540,7 @@ if __name__ == "__main__":
 
             sample_post = {
                 'title': 'Test Blog Post',
-                'content': 'This is a test blog post content.',
+                'content': 'This is a test post content.',
                 'hashtags': '#LinkedIn #BlogPost #Test',
                 'call_to_action': 'What do you think about this topic?',
                 'generated_at': datetime.now().isoformat(),
@@ -549,7 +549,7 @@ if __name__ == "__main__":
             }
             
             
-            success = email_sender.send_blog_post(sample_post)
+            success = email_sender.send_post(sample_post)
             if success:
                 print("Test email sent successfully!")
             else:

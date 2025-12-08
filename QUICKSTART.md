@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide - LinkedIn Blog Agent
+# 🚀 Quick Start Guide - LinkedIn Post Agent
 
 ## ⚡ Get Started in 5 Minutes!
 
@@ -38,7 +38,7 @@ python main.py --interactive
 
 #### Option B: Command Line
 ```bash
-# Generate a blog about AI
+# Generate a post about AI
 python main.py --topic "The Future of AI in Business"
 
 # Generate with custom settings
@@ -47,7 +47,7 @@ python main.py --topic "Remote Work Tips" --tone casual --length short
 
 ## 🎯 What You Get
 
-- **AI-Generated LinkedIn Blog Posts** using Google's latest AI
+- **AI-Generated LinkedIn Posts** using Google's latest AI
 - **Professional Email Distribution** to any recipient
 - **Multiple Content Formats** (JSON, TXT, HTML email)
 - **Batch Processing** for multiple topics
@@ -72,8 +72,8 @@ python main.py --topic "Quick Productivity Hacks" --length short
 
 ## 📊 Usage Limits (FREE)
 
-- **15 blog posts per minute**
-- **1,500 blog posts per day**
+- **15 posts per minute**
+- **1,500 posts per day**
 - **Zero cost** for typical usage
 - **No credit card** required
 
@@ -86,7 +86,7 @@ python main.py --topic "Quick Productivity Hacks" --length short
 
 ## 🎉 That's It!
 
-You now have a fully functional AI-powered LinkedIn blog agent that can:
+You now have a fully functional AI-powered LinkedIn post agent that can:
 - Generate professional content in seconds
 - Send beautifully formatted emails
 - Save posts for later use

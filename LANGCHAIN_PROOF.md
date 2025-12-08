@@ -23,14 +23,14 @@ Your instructor said the project was "not capable" because it didn't use a real 
 
 ## 🔧 Real Framework Components
 
-### 1. LangChain Agent (src/langchain_blog_agent.py)
+### 1. LangChain Agent (src/langchain_post_agent.py)
 
 ```python
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.tools import Tool
 
-class LangChainBlogAgent:
+class LangChainPostAgent:
     def __init__(self):
         # Real LangChain LLM
         self.llm = ChatGoogleGenerativeAI(
@@ -101,11 +101,11 @@ def create_langchain_tools() -> List[Tool]:
 class LinkedInAgentOrchestrator:
     def __init__(self):
         # Using LangChain agent, not custom implementation
-        self.blog_agent = LangChainBlogAgent()
+        self.blog_agent = LangChainPostAgent()
     
     def orchestrate_blog_creation(self, topic: str):
         # Calls LangChain AgentExecutor
-        blog_post = self.blog_agent.generate_blog_with_langchain(
+        post = self.blog_agent.generate_post_with_langchain(
             topic=topic,
             tone=tone,
             length=length
@@ -180,12 +180,12 @@ self.agent_executor = AgentExecutor(agent=self.agent, tools=self.tools)
 
 ### 3. Show the UI
 - Run the app: `streamlit run streamlit_app_modern.py`
-- Generate a blog post
+- Generate a post
 - Point to the "LANGCHAIN FRAMEWORK" banner
 - Show the orchestration log with ReAct steps
 
 ### 4. Show the Code
-- Open `src/langchain_blog_agent.py`
+- Open `src/langchain_post_agent.py`
 - Point to the LangChain imports and usage
 - Explain that this is the SAME framework major companies use
 
@@ -210,7 +210,7 @@ self.agent_executor = AgentExecutor(agent=self.agent, tools=self.tools)
 - **No billing required** (free Gemini API + free LangChain framework)
 
 **The framework is visible in:**
-- Code: `src/langchain_blog_agent.py`, `src/agent_tools.py`
+- Code: `src/langchain_post_agent.py`, `src/agent_tools.py`
 - UI: "LANGCHAIN FRAMEWORK" banner with agent metadata
 - Logs: Orchestration log showing ReAct workflow
 
@@ -224,7 +224,7 @@ self.agent_executor = AgentExecutor(agent=self.agent, tools=self.tools)
 # Start the app
 streamlit run streamlit_app_modern.py
 
-# Generate a blog post
+# Generate a post
 # See "LANGCHAIN FRAMEWORK - REAL AGENT SDK IMPLEMENTATION" banner
 # See LangChain ReAct Agent metadata
 # See orchestration log with framework details

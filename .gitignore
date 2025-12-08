@@ -1,4 +1,4 @@
-# Gitignore for LinkedIn Blog Agent
+# Gitignore for LinkedIn Post Agent
 __pycache__/
 *.pyc
 *.pyo

@@ -1,6 +1,6 @@
 # 💼 LinkedGenius - AI LinkedIn Content Creator
 
-Generate professional LinkedIn blog posts with AI and send them via email.
+Generate professional LinkedIn posts with AI and send them via email.
 
 ## ✨ Features
 - 🤖 AI-Powered (Google Gemini 2.5-Flash)
