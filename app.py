@@ -680,6 +680,150 @@ def display_generated_post():
                 st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
+
+# ============================================================================
+# DISPLAY WORKFLOW & TOOLS USED
+# ============================================================================
+
+def display_workflow_and_tools():
+    """Display the workflow and tools used in post generation"""
+    
+    if st.session_state.generated_post:
+        st.markdown('<div class="glow-card">', unsafe_allow_html=True)
+        st.markdown('<div class="glow-card-title">🔧 Generation Workflow & Tools Used</div>', unsafe_allow_html=True)
+        
+        # Create tabs for workflow and tools
+        tab1, tab2 = st.tabs(["📋 Workflow Steps", "🛠️ Tools & Technologies"])
+        
+        with tab1:
+            st.markdown("### 6-Step Post Generation Workflow")
+            
+            workflow_steps = [
+                {
+                    "step": "1️⃣ Input Validation",
+                    "description": "Topic, tone, paragraphs, and audience are validated",
+                    "tools": ["Input Parser", "Data Validator"]
+                },
+                {
+                    "step": "2️⃣ Agent Initialization",
+                    "description": "LangChain ReAct Agent initialized with Google Gemini 2.5-Flash",
+                    "tools": ["LangChain", "Gemini API"]
+                },
+                {
+                    "step": "3️⃣ Research & Context",
+                    "description": "Web search for trending topics and relevant information",
+                    "tools": ["Web Search", "SerpAPI", "Content Analyzer"]
+                },
+                {
+                    "step": "4️⃣ Content Generation",
+                    "description": "AI generates professional LinkedIn post with specified tone and length",
+                    "tools": ["Gemini 2.5-Flash", "LangChain ReAct", "Prompt Engineering"]
+                },
+                {
+                    "step": "5️⃣ Post Optimization",
+                    "description": "Content is optimized, formatted, and enhanced with emojis if requested",
+                    "tools": ["Text Processor", "Formatter", "Emoji Engine"]
+                },
+                {
+                    "step": "6️⃣ Output Delivery",
+                    "description": "Post is saved to session and ready for email distribution",
+                    "tools": ["Session Manager", "Data Storage"]
+                }
+            ]
+            
+            for item in workflow_steps:
+                st.markdown(f"""
+                <div style="
+                    background: rgba(0, 255, 136, 0.1);
+                    border-left: 4px solid #00ff88;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                    border-radius: 8px;
+                ">
+                    <h4 style="color: #00ff88; margin-top: 0;">{item['step']}</h4>
+                    <p style="color: #ccc; margin: 0.5rem 0 0 0;">{item['description']}</p>
+                    <div style="color: #888; font-size: 0.9rem; margin-top: 0.5rem;">
+                        <strong>Tools:</strong> {', '.join(item['tools'])}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        with tab2:
+            st.markdown("### Core Technologies & Tools")
+            
+            technologies = [
+                {
+                    "category": "🤖 AI Model",
+                    "name": "Google Gemini 2.5-Flash",
+                    "description": "Advanced language model for content generation"
+                },
+                {
+                    "category": "🔗 Agent Framework",
+                    "name": "LangChain ReAct Agent",
+                    "description": "Reasoning + Acting agent for intelligent task execution"
+                },
+                {
+                    "category": "🌐 Language Processing",
+                    "name": "LangGraph",
+                    "description": "Graph-based language processing for multi-step orchestration"
+                },
+                {
+                    "category": "🔍 Search Integration",
+                    "name": "Web Search & SerpAPI",
+                    "description": "Real-time web search for trending topics and context"
+                },
+                {
+                    "category": "📊 Data Processing",
+                    "name": "Python Data Pipeline",
+                    "description": "Advanced data processing and text transformation"
+                },
+                {
+                    "category": "📧 Email Service",
+                    "name": "Gmail SMTP",
+                    "description": "Secure email delivery via Gmail backend"
+                },
+                {
+                    "category": "🎨 Frontend",
+                    "name": "Streamlit",
+                    "description": "Interactive web application framework"
+                },
+                {
+                    "category": "🔐 Environment",
+                    "name": "Python 3.11+",
+                    "description": "Modern Python runtime environment"
+                }
+            ]
+            
+            col1, col2 = st.columns(2)
+            
+            for idx, tech in enumerate(technologies):
+                if idx % 2 == 0:
+                    col = col1
+                else:
+                    col = col2
+                
+                with col:
+                    st.markdown(f"""
+                    <div style="
+                        background: rgba(0, 188, 212, 0.15);
+                        border: 1px solid rgba(0, 188, 212, 0.3);
+                        padding: 1rem;
+                        margin-bottom: 1rem;
+                        border-radius: 8px;
+                    ">
+                        <div style="color: #00bcd4; font-weight: bold; margin-bottom: 0.5rem;">
+                            {tech['category']}
+                        </div>
+                        <div style="color: #ffffff; font-weight: bold; margin-bottom: 0.3rem;">
+                            {tech['name']}
+                        </div>
+                        <div style="color: #aaa; font-size: 0.9rem;">
+                            {tech['description']}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
         
         # Show generation info
         st.markdown('<div class="glow-card">', unsafe_allow_html=True)
@@ -1077,6 +1221,10 @@ def main():
     # Display generated post if exists
     if st.session_state.generated_post:
         display_generated_post()
+        st.markdown("")
+        
+        # Display workflow and tools used
+        display_workflow_and_tools()
         st.markdown("")
         
         # Email section - always show after post generation
