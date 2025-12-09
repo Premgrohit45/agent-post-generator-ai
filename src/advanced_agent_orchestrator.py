@@ -3,6 +3,11 @@
 from typing import Dict, List, Optional, Any
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 try:
     from src.langchain_post_agent import LangChainPostAgent
     from src.email_sender import EmailSender

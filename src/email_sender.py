@@ -13,6 +13,11 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 try:
     from src.config import get_secret
 except ImportError:

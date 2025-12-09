@@ -11,6 +11,10 @@ from datetime import datetime
 import json
 import time
 from typing import Dict, Any
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
