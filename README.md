@@ -10,7 +10,7 @@ Generate professional LinkedIn posts with AI and send them via email.
 - 📊 Analytics Dashboard
 
 ## Live project link
-https://euvw624oyesaxfjkosfvkz.streamlit.app/
+https://agent-post-generator-ai-fippuhjkt5syrc4s7wo3e5.streamlit.app/
 
 ## 🔑 Get API Keys
 
