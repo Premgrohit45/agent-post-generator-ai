@@ -1,0 +1,21 @@
+# Gitignore for LinkedIn Post Agent
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.env
+.venv/
+venv/
+env/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.egg-info/
+build/
+dist/
+output/
+.streamlit/secrets.toml
