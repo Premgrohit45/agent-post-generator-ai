@@ -353,7 +353,11 @@ def initialize_session_state():
         'generated_post': None,
         'post_history': [],
         'generation_params': {},
-        'sidebar_expanded': True
+        'sidebar_expanded': True,
+        'show_workflow_popup': False,
+        'show_email_form': False,
+        'default_email': '',
+        'auto_send_enabled': True
     }
     
     for key, value in defaults.items():
@@ -464,6 +468,18 @@ def render_generator_form():
     st.markdown('<div class="glow-card">', unsafe_allow_html=True)
     st.markdown('<div class="glow-card-title">✍️ Generate LinkedIn Post</div>', unsafe_allow_html=True)
     
+    # Email input at top
+    st.markdown("**📧 Default Email (Auto-send after generation)**")
+    default_email = st.text_input(
+        "Email address for automatic sending",
+        placeholder="your@email.com",
+        key="default_email_input",
+        value=st.session_state.get('default_email', '')
+    )
+    st.session_state.default_email = default_email
+    
+    st.markdown("---")
+    
     col1, col2 = st.columns([2, 1])
     
     with col1:
@@ -502,7 +518,8 @@ def render_generator_form():
             add_emojis = st.checkbox("✨ Add emojis", value=True)
         
         with col_y:
-            send_email = st.checkbox("📧 Send to email after generation", value=False)
+            auto_send = st.checkbox("🔄 Auto-send to email", value=True)
+            st.session_state.auto_send_enabled = auto_send
     
     with col2:
         st.markdown("### 🎯 Actions")
@@ -510,6 +527,8 @@ def render_generator_form():
         if st.button("🚀 GENERATE POST", use_container_width=True):
             if not topic:
                 st.error("⚠️ Please enter a topic")
+            elif auto_send and not default_email:
+                st.error("⚠️ Please enter email for auto-send")
             else:
                 generate_post(topic, tone, length, audience, add_emojis)
         
@@ -593,6 +612,18 @@ def generate_post(topic: str, tone: str, length: str, audience: str, add_emojis:
             }
             
             st.success("✓ Post generated successfully!")
+            
+            # Show workflow popup
+            st.session_state.show_workflow_popup = True
+            
+            # Auto-send email as default process
+            if st.session_state.get('auto_send_enabled', True):
+                email_to_send = st.session_state.get('default_email', '')
+                if email_to_send and '@' in email_to_send:
+                    send_email_post(email_to_send, is_auto=True)
+                    if st.session_state.emails_sent > 0:
+                        st.success(f"📧 Email automatically sent to {email_to_send}")
+            
             st.rerun()
         
         except Exception as e:
@@ -681,6 +712,213 @@ def display_generated_post():
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================================
+# WORKFLOW POPUP - Shows Generation Process & Tools
+# ============================================================================
+
+def render_workflow_popup():
+    """Display workflow and tools used in generation"""
+    
+    if st.session_state.generated_post and st.session_state.show_workflow_popup:
+        with st.container():
+            st.markdown("""
+            <style>
+            .workflow-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 999;
+                animation: fadeIn 0.3s ease-in;
+            }
+            
+            .workflow-content {
+                background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+                border: 2px solid #00ff88;
+                border-radius: 15px;
+                padding: 2rem;
+                max-width: 600px;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+                animation: slideUp 0.4s ease-out;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideUp {
+                from { 
+                    opacity: 0;
+                    transform: translateY(50px);
+                }
+                to { 
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            </style>
+            """, unsafe_allow_html=True)
+        
+        # Modal background
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        with col2:
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+                border: 2px solid #00ff88;
+                border-radius: 15px;
+                padding: 2rem;
+                box-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+            ">
+            """, unsafe_allow_html=True)
+            
+            # Header
+            st.markdown("""
+            <div style="
+                text-align: center;
+                margin-bottom: 1.5rem;
+                padding-bottom: 1rem;
+                border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            ">
+                <h2 style="
+                    color: #00ff88;
+                    font-size: 1.8rem;
+                    margin: 0;
+                    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+                ">🚀 Generation Workflow</h2>
+                <p style="color: #888; margin-top: 0.5rem;">AI Agent Process & Technologies Used</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Get workflow details
+            post = st.session_state.generated_post
+            metadata = post.get('agent_metadata', {})
+            orchestration = post.get('orchestration_metadata', {})
+            
+            # Workflow Steps
+            st.markdown("### 📋 Workflow Steps", unsafe_allow_html=True)
+            
+            steps = [
+                ("1️⃣ Input Processing", "Topic, tone, length, and audience validated"),
+                ("2️⃣ LangChain Agent Init", "ReAct agent initialized with tools"),
+                ("3️⃣ Research Phase", "Web search & trending topics analyzed"),
+                ("4️⃣ Content Generation", "AI generates professional post content"),
+                ("5️⃣ Quality Check", "Post validated and formatted"),
+                ("6️⃣ Email Dispatch", "Post automatically sent to recipient"),
+            ]
+            
+            for step_title, step_desc in steps:
+                st.markdown(f"""
+                <div style="
+                    background: rgba(0, 255, 136, 0.1);
+                    border-left: 3px solid #00ff88;
+                    padding: 0.8rem;
+                    margin-bottom: 0.8rem;
+                    border-radius: 5px;
+                ">
+                    <strong style="color: #00ff88;">{step_title}</strong><br>
+                    <span style="color: #ccc; font-size: 0.9rem;">{step_desc}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+            # Technologies Used
+            st.markdown("### 🛠️ Technologies & Tools", unsafe_allow_html=True)
+            
+            tech_items = [
+                ("🤖 AI Model", "Google Gemini 2.5-Flash"),
+                ("🔗 Agent Framework", "LangChain ReAct Agent"),
+                ("📚 Language Library", "LangGraph (v1.0+)"),
+                ("🔍 Search Tool", "Web Search Integration"),
+                ("📊 Data Analysis", "Statistics & Trending Topics"),
+                ("📧 Email Service", "Gmail SMTP Backend"),
+            ]
+            
+            col_a, col_b = st.columns(2)
+            for idx, (tech_name, tech_desc) in enumerate(tech_items):
+                if idx % 2 == 0:
+                    with col_a:
+                        st.markdown(f"""
+                        <div style="
+                            background: rgba(0, 188, 212, 0.15);
+                            padding: 1rem;
+                            border-radius: 8px;
+                            margin-bottom: 0.8rem;
+                            border: 1px solid rgba(0, 188, 212, 0.3);
+                        ">
+                            <strong style="color: #00bcd4;">{tech_name}</strong><br>
+                            <span style="color: #aaa; font-size: 0.85rem;">{tech_desc}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    with col_b:
+                        st.markdown(f"""
+                        <div style="
+                            background: rgba(0, 188, 212, 0.15);
+                            padding: 1rem;
+                            border-radius: 8px;
+                            margin-bottom: 0.8rem;
+                            border: 1px solid rgba(0, 188, 212, 0.3);
+                        ">
+                            <strong style="color: #00bcd4;">{tech_name}</strong><br>
+                            <span style="color: #aaa; font-size: 0.85rem;">{tech_desc}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+            # Agent Metadata
+            st.markdown("### ⚡ Agent Details", unsafe_allow_html=True)
+            
+            details = [
+                ("Framework", metadata.get('framework', 'LangChain ReAct Agent')),
+                ("Model", metadata.get('model', 'Gemini 2.5-Flash')),
+                ("Agent Type", metadata.get('agent_type', 'ReAct (Reasoning + Acting)')),
+                ("Tools Available", str(len(metadata.get('tools_available', []))),),
+            ]
+            
+            for detail_name, detail_value in details:
+                st.markdown(f"""
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 0.6rem 0;
+                    border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+                ">
+                    <span style="color: #888;">{detail_name}:</span>
+                    <strong style="color: #00ff88;">{detail_value}</strong>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+            # Action Buttons
+            st.markdown("### 📌 Actions", unsafe_allow_html=True)
+            
+            col_btn1, col_btn2 = st.columns(2)
+            
+            with col_btn1:
+                if st.button("✅ Close Popup", use_container_width=True, key="close_workflow"):
+                    st.session_state.show_workflow_popup = False
+                    st.rerun()
+            
+            with col_btn2:
+                if st.button("📧 Send Email", use_container_width=True, key="send_from_popup"):
+                    st.session_state.show_email_form = True
+                    st.rerun()
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================================
 # EMAIL SENDING SECTION
 # ============================================================================
 
@@ -739,11 +977,16 @@ def suggest_topic():
     suggestion = random.choice(suggestions)
     st.info(f"💡 Suggested topic: **{suggestion}**")
 
-def send_email_post(recipient: str):
+def send_email_post(recipient: str, is_auto: bool = False):
     """Send generated post via email"""
     try:
         email_sender = EmailSender()
         post = st.session_state.generated_post
+        
+        if not recipient or '@' not in recipient:
+            if not is_auto:
+                st.error("⚠️ Please enter a valid email")
+            return False
         
         success, message = email_sender.send_post({
             'content': post.get('content', ''),
@@ -752,15 +995,21 @@ def send_email_post(recipient: str):
         
         if success:
             st.session_state.emails_sent += 1
-            st.markdown('<div class="success-message">', unsafe_allow_html=True)
-            st.markdown('### ✅ Email Sent Successfully!')
-            st.markdown(f'Post sent to: **{recipient}**')
-            st.markdown('</div>', unsafe_allow_html=True)
+            if not is_auto:
+                st.markdown('<div class="success-message">', unsafe_allow_html=True)
+                st.markdown('### ✅ Email Sent Successfully!')
+                st.markdown(f'Post sent to: **{recipient}**')
+                st.markdown('</div>', unsafe_allow_html=True)
+            return True
         else:
-            st.error(f"❌ Failed to send: {message}")
+            if not is_auto:
+                st.error(f"❌ Failed to send: {message}")
+            return False
     
     except Exception as e:
-        st.error(f"🚨 Error: {str(e)}")
+        if not is_auto:
+            st.error(f"🚨 Error: {str(e)}")
+        return False
 
 # ============================================================================
 # MAIN APPLICATION
@@ -792,6 +1041,10 @@ def main():
     if st.session_state.generated_post:
         display_generated_post()
         st.markdown("")
+        
+        # Show workflow popup
+        if st.session_state.get('show_workflow_popup', False):
+            render_workflow_popup()
         
         # Email section
         if st.session_state.get('show_email_form', False):
