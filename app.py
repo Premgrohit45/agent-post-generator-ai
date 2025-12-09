@@ -357,7 +357,9 @@ def initialize_session_state():
         'show_workflow_popup': False,
         'show_email_form': False,
         'default_email': '',
-        'auto_send_enabled': True
+        'auto_send_enabled': True,
+        'pending_generation': False,
+        'pending_params': {}
     }
     
     for key, value in defaults.items():
@@ -530,7 +532,17 @@ def render_generator_form():
             elif auto_send and not default_email:
                 st.error("⚠️ Please enter email for auto-send")
             else:
-                generate_post(topic, tone, length, audience, add_emojis)
+                # Show workflow popup BEFORE generating
+                st.session_state.show_workflow_popup = True
+                st.session_state.pending_generation = True
+                st.session_state.pending_params = {
+                    'topic': topic,
+                    'tone': tone,
+                    'length': length,
+                    'audience': audience,
+                    'add_emojis': add_emojis
+                }
+                st.rerun()
         
         if st.button("💡 AI Suggest Topic", use_container_width=True):
             suggest_topic()
@@ -613,9 +625,6 @@ def generate_post(topic: str, tone: str, length: str, audience: str, add_emojis:
             
             st.success("✓ Post generated successfully!")
             
-            # Show workflow popup
-            st.session_state.show_workflow_popup = True
-            
             # Auto-send email as default process
             if st.session_state.get('auto_send_enabled', True):
                 email_to_send = st.session_state.get('default_email', '')
@@ -624,6 +633,8 @@ def generate_post(topic: str, tone: str, length: str, audience: str, add_emojis:
                     if st.session_state.emails_sent > 0:
                         st.success(f"📧 Email automatically sent to {email_to_send}")
             
+            # Close workflow popup after generation
+            st.session_state.show_workflow_popup = False
             st.rerun()
         
         except Exception as e:
@@ -718,7 +729,8 @@ def display_generated_post():
 def render_workflow_popup():
     """Display workflow and tools used in generation"""
     
-    if st.session_state.generated_post and st.session_state.show_workflow_popup:
+    # Show popup when pending generation (BEFORE generating post)
+    if st.session_state.show_workflow_popup and not st.session_state.generated_post:
         with st.container():
             st.markdown("""
             <style>
@@ -794,14 +806,31 @@ def render_workflow_popup():
                     margin: 0;
                     text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
                 ">🚀 Generation Workflow</h2>
-                <p style="color: #888; margin-top: 0.5rem;">AI Agent Process & Technologies Used</p>
+                <p style="color: #888; margin-top: 0.5rem;">Review AI Agent Process & Technologies Before Generation</p>
             </div>
             """, unsafe_allow_html=True)
             
-            # Get workflow details
-            post = st.session_state.generated_post
-            metadata = post.get('agent_metadata', {})
-            orchestration = post.get('orchestration_metadata', {})
+            # Get pending generation parameters
+            params = st.session_state.get('pending_params', {})
+            
+            # Display parameters
+            st.markdown("### 📝 Your Request", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="
+                background: rgba(0, 255, 136, 0.1);
+                border-left: 3px solid #00ff88;
+                padding: 0.8rem;
+                margin-bottom: 0.8rem;
+                border-radius: 5px;
+            ">
+                <strong style="color: #00ff88;">Topic:</strong> {params.get('topic', 'N/A')}<br>
+                <strong style="color: #00ff88;">Tone:</strong> {params.get('tone', 'N/A')} | 
+                <strong style="color: #00ff88;">Length:</strong> {params.get('length', 'N/A')} | 
+                <strong style="color: #00ff88;">Audience:</strong> {params.get('audience', 'N/A')}<br>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("---")
             
             # Workflow Steps
             st.markdown("### 📋 Workflow Steps", unsafe_allow_html=True)
@@ -880,10 +909,10 @@ def render_workflow_popup():
             st.markdown("### ⚡ Agent Details", unsafe_allow_html=True)
             
             details = [
-                ("Framework", metadata.get('framework', 'LangChain ReAct Agent')),
-                ("Model", metadata.get('model', 'Gemini 2.5-Flash')),
-                ("Agent Type", metadata.get('agent_type', 'ReAct (Reasoning + Acting)')),
-                ("Tools Available", str(len(metadata.get('tools_available', []))),),
+                ("Framework", "LangChain ReAct Agent"),
+                ("Model", "Gemini 2.5-Flash"),
+                ("Agent Type", "ReAct (Reasoning + Acting)"),
+                ("Processing Mode", "Multi-step orchestration"),
             ]
             
             for detail_name, detail_value in details:
@@ -898,6 +927,40 @@ def render_workflow_popup():
                     <strong style="color: #00ff88;">{detail_value}</strong>
                 </div>
                 """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+            # Action Buttons
+            st.markdown("### 📌 Actions", unsafe_allow_html=True)
+            
+            col_btn1, col_btn2 = st.columns(2)
+            
+            with col_btn1:
+                if st.button("❌ Cancel", use_container_width=True, key="cancel_workflow"):
+                    st.session_state.show_workflow_popup = False
+                    st.session_state.pending_generation = False
+                    st.session_state.pending_params = {}
+                    st.rerun()
+            
+            with col_btn2:
+                if st.button("✅ Proceed to Generate", use_container_width=True, key="proceed_generation"):
+                    # Proceed with actual generation
+                    pending_params = st.session_state.pending_params
+                    st.session_state.pending_generation = False
+                    st.session_state.pending_params = {}
+                    st.session_state.show_workflow_popup = False
+                    
+                    # Call generate_post with the parameters
+                    generate_post(
+                        pending_params.get('topic'),
+                        pending_params.get('tone'),
+                        pending_params.get('length'),
+                        pending_params.get('audience'),
+                        pending_params.get('add_emojis', True)
+                    )
+    
+    # Show popup after generation is complete (for review)
+    elif st.session_state.generated_post and st.session_state.show_workflow_popup:
             
             st.markdown("---")
             
